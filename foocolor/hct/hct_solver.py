@@ -1,4 +1,5 @@
 import numpy as np
+
 from foocolor.hct.viewing_conditions import STANDARD
 from foocolor.util.math_util import sanitize_degrees
 

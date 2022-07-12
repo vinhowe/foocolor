@@ -1,6 +1,7 @@
 import time
 
 import numpy as np
+
 from foocolor.util import color_util
 
 from .point_provider_lab import PointProviderLab

@@ -1,6 +1,7 @@
 from typing import Dict, List
 
 import numpy as np
+
 from foocolor.hct.hct import Hct
 from foocolor.util.math_util import difference_degrees, sanitize_degrees
 
