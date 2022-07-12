@@ -8,20 +8,31 @@ from .quantizer import Quantizer, QuantizerResult
 
 
 class QuantizerWsmeans(Quantizer):
-    def quantize(
+    def __init__(
+        self,
         unique_pixels: np.ndarray,
         counts: np.ndarray,
+    ) -> None:
+        super().__init__()
+        self._unique_pixels = unique_pixels
+        self._counts = counts
+
+    def quantize(
+        self,
         max_colors: int,
         starting_clusters: List[int] = None,
-        point_provider: PointProvider = PointProviderLab(),
+        point_provider: PointProvider = None,
         max_iterations: int = 5,
         return_input_pixel_to_cluster_pixel: bool = False,
     ) -> QuantizerResult:
         if starting_clusters is None:
             starting_clusters = []
 
-        point_count = unique_pixels.shape[0]
-        points = point_provider.from_int(unique_pixels)
+        if point_provider is None:
+            point_provider = PointProviderLab()
+
+        point_count = self._unique_pixels.shape[0]
+        points = point_provider.from_int(self._unique_pixels)
 
         cluster_count = min(max_colors, point_count)
 
@@ -38,10 +49,6 @@ class QuantizerWsmeans(Quantizer):
         )
 
         cluster_indices = np.arange(point_count) % cluster_count
-
-        distance_to_index_matrix = np.zeros(
-            (cluster_count, cluster_count), dtype=np.float64
-        )
 
         pixel_count_sums = np.zeros(cluster_count, dtype=np.int32)
         for iteration in range(max_iterations):
@@ -91,8 +98,8 @@ class QuantizerWsmeans(Quantizer):
             component_sums = np.zeros((cluster_count, 3), dtype=np.float64)
 
             pixel_count_sums[:] = 0
-            np.add.at(pixel_count_sums, cluster_indices, counts)
-            np.add.at(component_sums, cluster_indices, points * counts[:, None])
+            np.add.at(pixel_count_sums, cluster_indices, self._counts)
+            np.add.at(component_sums, cluster_indices, points * self._counts[:, None])
 
             clusters = np.where(
                 (pixel_count_sums == 0)[:, None],
@@ -117,9 +124,9 @@ class QuantizerWsmeans(Quantizer):
 
         if return_input_pixel_to_cluster_pixel:
             input_pixel_to_cluster_pixel = {}
-            for i in range(len(unique_pixels)):
-                input_pixel = unique_pixels[i]
-                cluster_index = cluster_indices[i]
+            for i in range(len(self._unique_pixels)):
+                input_pixel = self._unique_pixels[i]
+                cluster_index = self._cluster_indices[i]
                 cluster = clusters[cluster_index]
                 cluster_pixel = point_provider.to_int(cluster)
                 input_pixel_to_cluster_pixel[input_pixel] = cluster_pixel

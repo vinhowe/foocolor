@@ -112,10 +112,10 @@ class ViewingConditions:
 
         # Base exponential nonlinearity
         # note Schlomer 2018 has a typo and uses 1.58, the correct factor is 1.48
-        z = 1.48 + (n ** 0.5)
+        z = 1.48 + (n**0.5)
 
         # Luminance-level induction factors
-        nbb = 0.725 / (n ** 0.2)
+        nbb = 0.725 / (n**0.2)
         ncb = nbb
 
         # Discounted cone responses to the white point, adjusted for post-saturationtic
@@ -149,9 +149,9 @@ class ViewingConditions:
             drgb_inverse=[0.0, 0.0, 0.0],
             rgb_d=rgb_d,
             fl=fl,
-            f_l_root=fl ** 0.25,
+            f_l_root=fl**0.25,
             z=z,
         )
 
 
-STANDARD = SRGB = ViewingConditions.make()
+VIEWING_CONDITIONS_STANDARD = VIEWING_CONDITIONS_SRGB = ViewingConditions.make()

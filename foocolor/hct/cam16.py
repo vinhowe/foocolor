@@ -1,7 +1,7 @@
 import numpy as np
 
 from ..util.color_util import argb_from_xyz, xyz_from_argb
-from .viewing_conditions import SRGB, ViewingConditions
+from .viewing_conditions import VIEWING_CONDITIONS_SRGB, ViewingConditions
 
 
 class Cam16:
@@ -18,7 +18,7 @@ class Cam16:
 
     @classmethod
     def from_int(cls, argb):
-        return cls.from_int_in_viewing_conditions(argb, SRGB)
+        return cls.from_int_in_viewing_conditions(argb, VIEWING_CONDITIONS_SRGB)
 
     @classmethod
     def from_int_in_viewing_conditions(
@@ -69,8 +69,8 @@ class Cam16:
         e_hue = (1.0 / 4.0) * (np.cos(hue_prime * np.pi / 180.0 + 2.0) + 3.8)
         p1 = 50000.0 / 13.0 * e_hue * viewing_conditions.nc * viewing_conditions.ncb
         t = p1 * np.sqrt(a * a + b * b) / (u + 0.305)
-        alpha = (t ** 0.9) * (
-            (1.64 - (0.29 ** viewing_conditions.background_y_to_white_point_y)) ** 0.73
+        alpha = (t**0.9) * (
+            (1.64 - (0.29**viewing_conditions.background_y_to_white_point_y)) ** 0.73
         )
         c = alpha * np.sqrt(j / 100.0)
         m = c * viewing_conditions.f_l_root

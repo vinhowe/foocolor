@@ -1,10 +1,10 @@
 import abc
-from typing import Dict, List
+from typing import Dict
 
 
 class Quantizer(abc.ABC):
     @abc.abstractmethod
-    def quantize(self, pixels: List[int], max_colors: int) -> "QuantizerResult":
+    def quantize(self, max_colors: int) -> "QuantizerResult":
         pass
 
 

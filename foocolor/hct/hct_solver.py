@@ -1,6 +1,6 @@
 import numpy as np
 
-from foocolor.hct.viewing_conditions import STANDARD
+from foocolor.hct.viewing_conditions import VIEWING_CONDITIONS_STANDARD
 from foocolor.util.math_util import sanitize_degrees
 
 from ..util.color_util import argb_from_linrgb, argb_from_lstar, y_from_lstar
@@ -457,7 +457,7 @@ def inverse_chromatic_adaptation(adapted):
 
 def find_result_by_j(hue_radians, chroma, y):
     j = np.sqrt(y) * 11.0
-    viewing_conditions = STANDARD
+    viewing_conditions = VIEWING_CONDITIONS_STANDARD
     t_inner_coeff = 1 / (
         (1.64 - np.power(0.29, viewing_conditions.background_y_towhite_point_y)) ** 0.73
     )

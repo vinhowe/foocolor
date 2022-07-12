@@ -1,5 +1,3 @@
-from typing import Dict, List, Tuple
-
 import numpy as np
 
 from .quantizer import Quantizer, QuantizerResult
