@@ -1,5 +1,4 @@
 import numpy as np
-
 from foocolor.hct.viewing_conditions import VIEWING_CONDITIONS_STANDARD
 from foocolor.util.math_util import sanitize_degrees
 
@@ -304,7 +303,7 @@ def chromatic_adaptation(component):
 
 
 def hue_of(linrgb):
-    scaled_discount = linrgb @ SCALED_DISCOUNT_FROM_LINRGB
+    scaled_discount = linrgb @ SCALED_DISCOUNT_FROM_LINRGB.T
     r_a = chromatic_adaptation(scaled_discount[0])
     g_a = chromatic_adaptation(scaled_discount[1])
     b_a = chromatic_adaptation(scaled_discount[2])
@@ -346,37 +345,37 @@ def nth_vertex(y, n):
     k_r = Y_FROM_LINRGB[0]
     k_g = Y_FROM_LINRGB[1]
     k_b = Y_FROM_LINRGB[2]
-    coord_a = n % 4 <= 1 and 0.0 or 100.0
-    coord_b = n % 2 == 0 and 0.0 or 100.0
+    coord_a = 0.0 if n % 4 <= 1 else 100.0
+    coord_b = 0.0 if n % 2 == 0 else 100.0
     if n < 4:
         g = coord_a
         b = coord_b
         r = (y - g * k_g - b * k_b) / k_r
         if is_bounded(r):
-            return [r, g, b]
+            return np.array([r, g, b])
         else:
-            return [-1.0, -1.0, -1.0]
+            return np.array([-1.0, -1.0, -1.0])
     elif n < 8:
         b = coord_a
         r = coord_b
         g = (y - r * k_r - b * k_b) / k_g
         if is_bounded(g):
-            return [r, g, b]
+            return np.array([r, g, b])
         else:
-            return [-1.0, -1.0, -1.0]
+            return np.array([-1.0, -1.0, -1.0])
     else:
         r = coord_a
         g = coord_b
         b = (y - r * k_r - g * k_g) / k_b
         if is_bounded(b):
-            return [r, g, b]
+            return np.array([r, g, b])
         else:
-            return [-1.0, -1.0, -1.0]
+            return np.array([-1.0, -1.0, -1.0])
 
 
 def bisect_to_segment(y, target_hue):
-    left = [-1.0, -1.0, -1.0]
-    right = left
+    left = np.array([-1.0, -1.0, -1.0])
+    right = left.copy()
     left_hue = 0.0
     right_hue = 0.0
     initialized = False
@@ -387,8 +386,8 @@ def bisect_to_segment(y, target_hue):
             continue
         mid_hue = hue_of(mid)
         if not initialized:
-            left = mid
-            right = mid
+            left = mid.copy()
+            right = mid.copy()
             left_hue = mid_hue
             right_hue = mid_hue
             initialized = True
@@ -405,7 +404,7 @@ def bisect_to_segment(y, target_hue):
 
 
 def midpoint(a, b):
-    return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2]
+    return np.array([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2])
 
 
 def critical_plane_below(x):
@@ -435,7 +434,7 @@ def bisect_to_limit(y, target_hue):
                 if np.abs(r_plane - l_plane) <= 1:
                     break
                 else:
-                    m_plane = np.floor((l_plane + r_plane) / 2.0)
+                    m_plane = int((l_plane + r_plane) / 2.0)
                     mid_plane_coordinate = CRITICAL_PLANES[m_plane]
                     mid = set_coordinate(left, mid_plane_coordinate, right, axis)
                     mid_hue = hue_of(mid)
@@ -459,15 +458,16 @@ def find_result_by_j(hue_radians, chroma, y):
     j = np.sqrt(y) * 11.0
     viewing_conditions = VIEWING_CONDITIONS_STANDARD
     t_inner_coeff = 1 / (
-        (1.64 - np.power(0.29, viewing_conditions.background_y_towhite_point_y)) ** 0.73
+        (1.64 - np.power(0.29, viewing_conditions.background_y_to_white_point_y))
+        ** 0.73
     )
     e_hue = 0.25 * (np.cos(hue_radians + 2.0) + 3.8)
-    p1 = e_hue * (50000.0 / 13.0) * viewing_conditions.n_c * viewing_conditions.ncb
+    p1 = e_hue * (50000.0 / 13.0) * viewing_conditions.nc * viewing_conditions.ncb
     h_sin = np.sin(hue_radians)
     h_cos = np.cos(hue_radians)
     for iteration_round in range(5):
         j_normalized = j / 100.0
-        alpha = chroma == 0.0 or j == 0.0 and 0.0 or chroma / np.sqrt(j_normalized)
+        alpha = 0.0 if chroma == 0.0 or j == 0.0 else chroma / np.sqrt(j_normalized)
         t = (alpha * t_inner_coeff) ** (1.0 / 0.9)
         ac = viewing_conditions.aw * (
             (j_normalized) ** (1.0 / viewing_conditions.c / viewing_conditions.z)
@@ -484,8 +484,9 @@ def find_result_by_j(hue_radians, chroma, y):
         r_c_scaled = inverse_chromatic_adaptation(r_a)
         g_c_scaled = inverse_chromatic_adaptation(g_a)
         b_c_scaled = inverse_chromatic_adaptation(b_a)
-        linrgb = np.matmul(
-            [r_c_scaled, g_c_scaled, b_c_scaled], LINRGB_FROM_SCALED_DISCOUNT
+        linrgb = (
+            np.array([r_c_scaled, g_c_scaled, b_c_scaled])
+            @ LINRGB_FROM_SCALED_DISCOUNT.T
         )
         if linrgb[0] < 0 or linrgb[1] < 0 or linrgb[2] < 0:
             return 0
